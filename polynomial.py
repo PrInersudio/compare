@@ -65,7 +65,7 @@ class Polynomial:
             if coeff != 0: yield exp
     
     def __eq__(self, other: 'Polynomial') -> bool:
-        logger.debug(f'Polynomial.__eq__. self={self}, other={other}')
+        if not isinstance(other, Polynomial): return False
         return all(self[exp] == other[exp] for exp in set(self) | set(other))
     
     def monomials(self)  -> Generator[Tuple[int,int]]:
@@ -139,7 +139,7 @@ class Polynomial:
         for exp1, coeff1 in self.monomials():
             for exp2, coeff2 in other.monomials():
                 result[exp1+exp2] += coeff1 * coeff2
-        result = {exp:coeff for exp, coeff in result.monomials() if coeff != 0}
+        result = Polynomial({exp:coeff for exp, coeff in result.monomials() if coeff != 0})
         logger.debug(f'Polynomial.__mul__. self={self}, other={other}, result={result}')
         return result
     
@@ -162,8 +162,8 @@ class Polynomial:
             coeff = self[exp]
             if coeff == 0: continue
             if exp == 0: monomial = f"{coeff}"
-            elif exp == 1: monomial = f"{coeff}x" if coeff != 1 else "x"
-            else: monomial = f"{coeff}x^{exp}" if coeff != 1 else f"x^{exp}"
+            elif exp == 1: monomial = "x" if coeff == 1 else "-x" if coeff == -1 else f"{coeff}x"
+            else: monomial = f"x^{exp}" if coeff == 1 else f"-x^{exp}" if coeff == -1 else f"{coeff}x^{exp}"
             monomials.append(monomial)
         polynomial_str = " + ".join(monomials)
         polynomial_str = polynomial_str.replace("+ -", "- ")
@@ -306,11 +306,17 @@ class Polynomial:
         logger.debug(f'Polynomial.roots. self={self}, M={M}, result={result}')
         return result
     
+    def monic(self, p) -> 'Polynomial':
+        if not self: return Polynomial()
+        return (self * pow(self[self.degree()], -1, p)) % p
+    
 def gcd(f: Polynomial, g: Polynomial, p:int) -> Polynomial:
     logger.debug(f'Начало gcd. f={f}, g={g}')
     while g:
         logger.debug(f'Шаг gcd. f={f}, g={g}')
         f, (_, g) = g, f.div(g,p)
+    logger.debug(f'gcd, делаем унитарный. f={f}, g={g}')
+    f = f.monic(p)
     logger.debug(f'Конец gcd. f={f}, g={g}')
     return f
 
@@ -326,8 +332,6 @@ def binomial_theorem(m: int, a: int, exp: int) -> Polynomial:
         logger.debug(f'binomial_theorem. m={m}, a={a}, exp={exp}, poly={poly}')
     return poly
 
-
-# юнит_тесты
 class TestPolynomial(unittest.TestCase):
 
     def setUp(self):
@@ -490,8 +494,8 @@ class TestPolynomial(unittest.TestCase):
     def test_roots_BerlekampRabin(self):
         self.assertEqual(Polynomial("x + 1")._Polynomial__roots_BerlekampRabin(5), {4}, "Ошибка __roots_BerlekampRabin в случае линейного многочлена.")
         self.assertEqual(Polynomial("x^2 + 1")._Polynomial__roots_BerlekampRabin(3), set(), "Ошибка __roots_BerlekampRabin в случае неприводимого многочлена.")
-        self.assertEqual(Polynomial("x^3 + x")._Polynomial__roots_BerlekampRabin(3), {0}, "Ошибка __roots_BerlekampRabin в случае, если многочлен расладывается на линейный и нелинейный.")
-        self.assertEqual(Polynomial("x^2 - 1")._Polynomial__roots_BerlekampRabin(3), {1, 2}, "Ошибка __roots_BerlekampRabin в общем случае.")
+        self.assertEqual(Polynomial("x^3 + x")._Polynomial__roots_BerlekampRabin(7), {0}, "Ошибка __roots_BerlekampRabin в случае, если многочлен расладывается на линейный и нелинейный.")
+        self.assertEqual(Polynomial("3x^3 + 4x^2 + 2x + 1")._Polynomial__roots_BerlekampRabin(5), {1, 2, 4}, "Ошибка __roots_BerlekampRabin в общем случае.")
 
     def test_Fermat_little_theorem(self):
         self.assertEqual(Polynomial().Fermat_little_theorem(3), Polynomial(), "Нулевой многочлен после примениния Малой теоремы Ферма должен оставаться нулевым.")
@@ -517,7 +521,46 @@ class TestPolynomial(unittest.TestCase):
 
     def test_roots_prime_module(self):
         self.assertEqual(Polynomial()._Polynomial__roots_prime_module(5), {0, 1, 2 , 3, 4}, "Корнями нулевого многочлена должны являться все элементы поля.")
-        self.assertEqual(Polynomial("5x^2 + 5x + 5")._Polynomial__roots_prime_module(5), {0, 1, 2 , 3, 4}, "Корнями нулевого многочлена должны являться все элементы поля.")
+        self.assertEqual(Polynomial("5x^2 + 5x + 5")._Polynomial__roots_prime_module(5), {0, 1, 2 , 3, 4}, "Корнями нулевого многочлена должны являться все элементы поля (случай нулевого по модулю).")
+        self.assertEqual(Polynomial("x - 3")._Polynomial__roots_prime_module(5), {3}, "Ошибка __roots_prime_module в случае линейного с одним корнем.")
+        self.assertEqual(Polynomial(3)._Polynomial__roots_prime_module(5), set(), "Ошибка __roots_prime_module в случае константного без корней.")
+        self.assertEqual(Polynomial("x^2 - 1")._Polynomial__roots_prime_module(7), {1, 6}, "Ошибка __roots_prime_module в случае квадратного с двумя корнями.")
+        self.assertEqual(Polynomial("x^2 - 5")._Polynomial__roots_prime_module(13), set(), "Ошибка __roots_prime_module в случае квадратного без корней.")
+        self.assertEqual(Polynomial("x^2 - 26")._Polynomial__roots_prime_module(13), {0}, "Ошибка __roots_prime_module в случае квадратного с одниим корнем.")
+        self.assertEqual(Polynomial("3x^3 + 4x^2 + 2x + 1")._Polynomial__roots_prime_module(5), {1, 2, 4}, "Ошибка __roots_prime_module в общем случае.")
+
+    def test_roots_primary_module(self):
+        self.assertEqual(Polynomial("3x^3 + 4x^2 + 2x + 1")._Polynomial__roots_primary_module(5, 4), {(72, 625), (136, 625), (624, 625)}, "Ошибка _roots_primary_module в общем случае.")
+        self.assertEqual(Polynomial("3x^3 + 4x^2 + 2x + 1")._Polynomial__roots_primary_module(5), {(1, 5), (2, 5), (4, 5)}, "Ошибка _roots_primary_module случае q = 1.")
+        self.assertEqual(Polynomial("x^2 - 5")._Polynomial__roots_primary_module(13, 4), set(), "Ошибка __roots_primary_module в случае отсуствия корней по простому модулю.")
+
+    def test_roots(self):
+        self.assertEqual(Polynomial("162x^10+135x^9+162x^8+56x^4+162x^3+162x^2+113x+188").roots(189), {(94, 189), (67, 189), (121, 189)}, "Ошибка roots в общем случае.")
+        self.assertEqual(Polynomial("x^3+11x^2+2x+8").roots(16), {(2, 16), (4, 16), (10, 16), (12, 16), (15, 16)}, "Ошибка roots в случае примарного модуля.")
+
+    def test_gcd(self):
+        self.assertEqual(gcd(Polynomial("2x^3 - 3x + 1"), Polynomial(), 5), Polynomial("x^3 + x + 3"), "Ошибка gcd в случае, если один из многочленов нулевой.")
+        self.assertEqual(gcd(Polynomial("3x^4 + 6x^2 - 1"), Polynomial("x^2 - 7"), 13), Polynomial(1), "Ошибка gcd в случае взаимнопростых.")
+        self.assertEqual(gcd(Polynomial(), Polynomial(), 13), Polynomial(), "Ошибка gcd в случае, если оба многочлена нулевые.")
+        self.assertEqual(gcd(Polynomial("3x^4 + 6x^2 - 1"), Polynomial(5), 13), Polynomial(1), "Ошибка gcd в случае, если один многочлен констаната.")
+        self.assertEqual(gcd(Polynomial("2x^3 - 3x + 1"), Polynomial("2x^3 - 3x + 1"), 5), Polynomial("x^3 + x + 3"), "Ошибка gcd в случае одинаковых многочленов.")
+        self.assertEqual(gcd(Polynomial("2x^3 - 3x + 1"), Polynomial("x^3 + x + 3"), 5), Polynomial("x^3 + x + 3"), "Ошибка gcd в случае одинаковых унитарного и не унитарного многочленов.")
+        self.assertEqual(gcd(Polynomial("2x - 2"), Polynomial("x^2 - 1"), 5), Polynomial("x + 4"), "Ошибка gcd в случае если один делитель друого.")
+        self.assertEqual(gcd(Polynomial("x^3 + x"), Polynomial("x^3 + 3x^2 + 3x"), 5), Polynomial("x"), "Ошибка gcd в общем случае.")
+
+    def test_binomial_theorem(self):
+        self.assertEqual(binomial_theorem(2, 3, 0), Polynomial({0: 1}), "Ошибка binomial_theorem в случае exp=0.")
+        self.assertEqual(binomial_theorem(2, 3, 1), Polynomial({1: 2, 0: 3}), "Ошибка binomial_theorem в случае exp=1.")
+        self.assertEqual(binomial_theorem(0, 3, 2), Polynomial({0: 9}), "Ошибка binomial_theorem в случае m=0.")
+        self.assertEqual(binomial_theorem(2, 0, 3), Polynomial({3: 8}), "Ошибка binomial_theorem в случае a=0.")
+        self.assertEqual(binomial_theorem(1, 1, 5), Polynomial({5: 1, 4: 5, 3: 10, 2: 10, 1: 5, 0: 1}), "Ошибка binomial_theorem в общем случае.")
+        self.assertEqual(binomial_theorem(-1, 2, 3), Polynomial({3: -1, 2: 6, 1: -12, 0: 8}), "Ошибка binomial_theorem случае m<0.")
+        self.assertEqual(binomial_theorem(2, -3, 2), Polynomial({2: 4, 1: -12, 0: 9}), "Ошибка binomial_theorem случае a<0.")
+        self.assertEqual(binomial_theorem(0, 0, 5), Polynomial(), "Ошибка binomial_theorem случае m=0, a=0." )
+
+    def test_monic(self):
+        self.assertEqual(Polynomial().monic(5), Polynomial(), "Ошибка monic в случае нулевого многочлена.")
+        self.assertEqual(Polynomial("5x^3 - 3x^2 + 4x - 1").monic(7), Polynomial("x^3 + 5x^2 + 5x + 4"), "Ошибка monic в общем случае.")
 
 if __name__ == '__main__':
     unittest.main()

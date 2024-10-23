@@ -1,9 +1,6 @@
 from typing import Tuple, Set, Literal
 import logging
-from linear_comparisons import solve_linear_comparison
-from sympy import factorint
 import unittest
-from math import gcd
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -38,6 +35,7 @@ class QuadraticResidue:
         return self.__repr__()
     
     def __eq__(self, other: 'QuadraticResidue') -> bool:
+        if not isinstance(other, QuadraticResidue): return False
         return self.p == other.p and self.a % self.p == other.a % other.p
 
     def __roots_p_modulo_4_equals_3(self) -> Set[int]:
