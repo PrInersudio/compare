@@ -30,8 +30,8 @@ def main():
     result = solve_comparisons(equations)
     logger.info("Закончила решать. Начинает записывать ответ.")
     with open(sys.argv[2],"w") as fp:
-        for x,m in result:
-            print(f'[{x}]_{m}',end=' ', file=fp)
+        for x in result:
+            print(x, end=' ', file=fp)
     logger.info("Записала ответ.")
 
 if __name__ == '__main__':

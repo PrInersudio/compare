@@ -1,6 +1,7 @@
 from typing import Tuple, Set, Literal
 import logging
 import unittest
+from field import GF
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -129,10 +130,11 @@ def quadratic_comparison_to_QuadraticResidue(a: int, b: int, c: int, p: int) -> 
     logger.debug(f'quadratic_comparison_to_QuadraticResidue. a={a}, b={b}, c={c}, p={p}, qr={qr}, b1 = {b1}.')
     return qr, b1
 
-def solve_quadratic_comparison(a: int, b: int, c: int, p: int) -> Set[int]:
+def solve_quadratic_comparison(a: int, b: int, c: int, p: int) -> Set[GF.Element]:
     logger.debug(f'solve_quadratic_comparison. a={a}, b={b}, c={c}, p={p}.')
     qr, b1 = quadratic_comparison_to_QuadraticResidue(a, b, c, p)
-    roots = set((y - b1) % p for y in qr.roots())
+    gf = GF(p)
+    roots = set(gf(y - b1) for y in qr.roots())
     logger.debug(f'solve_quadratic_comparison. a={a}, b={b}, c={c}, p={p} roots={roots}.')
     return roots
 
@@ -178,7 +180,7 @@ class TestQuadraticResidue(unittest.TestCase):
         self.assertEqual(QuadraticResidue(186, 401).roots(), {304, 97}, "Ошибка вычисления корней квадратичного вычета при p a^t % p != 1.")
 
     def test_solve_quadratic_comparison(self):
-        self.assertEqual(solve_quadratic_comparison(2, -20, 32, 41), {2, 8}, "Ошибка вычисления корней квадратичного сравнения.")
+        self.assertEqual(solve_quadratic_comparison(2, -20, 32, 41), {GF(41)(2), GF(41)(8)}, "Ошибка вычисления корней квадратичного сравнения.")
 
 if __name__ == '__main__':
     unittest.main()
