@@ -1,6 +1,14 @@
 from integer_mod_ring import IntegerModRing
 from sympy import factorint
 from ring import Ring
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(f'log/{__name__}.log')
+handler.setLevel(logging.DEBUG)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
 
 class Field(Ring):
     def __init__(self):
@@ -41,8 +49,12 @@ class GF_primary:
     
 class GF(GF_prime, GF_primary):
 
-    def __init__(self, P: int, dont_check_consider_prime: bool = False):
-        if dont_check_consider_prime: GF_prime.__init__(self, P)
+    def __init__(self, P: int, dont_check_factors: bool = False, p: int = 0, q: int = 0):
+        if dont_check_factors:
+            if p and q:
+                GF_primary.__init__(self, p, q)
+            else:
+                GF_prime.__init__(self, P)
         factors = factorint(P)
         if len(factors) != 1: raise ValueError("Размер поля должен быть простым или примарным числом.")
         p, q = list(factors.items())[0]
@@ -51,9 +63,19 @@ class GF(GF_prime, GF_primary):
     
 
 class RealField(Field):
+    __instance = None
+
+    def __new__(cls):
+        if not cls.__instance:
+            logger.debug("Созадаётся RealField.")
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
 
     def __init__(self):
+        if hasattr(self, '_initialized'): return
+        logger.debug("Инициализируется RealField.")
         super().__init__()
+        self._initialized = True
 
     def __call__(self, value = 0) -> 'RealField.Element':
         return self.Element(self, float(value))
@@ -68,9 +90,19 @@ class RealField(Field):
 
 
 class ComplexField(Field):
+    __instance = None
+
+    def __new__(cls):
+        if not cls.__instance:
+            logger.debug("Созадаётся ComplexField.")
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
 
     def __init__(self):
+        if hasattr(self, '_initialized'): return
+        logger.debug("Инициализируется ComplexField.")
         super().__init__()
+        self._initialized = True
 
     def __call__(self, value = 0) -> 'ComplexField.Element':
         return self.Element(self, complex(value))

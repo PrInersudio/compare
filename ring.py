@@ -153,11 +153,21 @@ class Ring:
 
         def __hash__(self):
             return hash(self.value)
-        
+
 class IntegerRing(Ring):
+    __instance = None
+
+    def __new__(cls):
+        if not cls.__instance:
+            logger.debug("Создаётся IntegerRing.")
+            cls.__instance = super().__new__(cls)
+        return cls.__instance
 
     def __init__(self):
+        if hasattr(self, '_initialized'): return
+        logger.debug("Инициализируется IntegerRing.")
         super().__init__()
+        self._initialized = True
         self.has_multiplicative_identity = True
         self.is_euclidean = True
         self.is_commutative = True
