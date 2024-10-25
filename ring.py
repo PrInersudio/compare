@@ -20,10 +20,10 @@ class Ring:
         return self.Element(self, value)
     
     def __repr__(self) -> str:
-        return f'Абстрактное кольцо.'
+        return f'Ring()'
     
     def __str__(self) -> str:
-        return self.__repr__()
+        return f'Абстрактное кольцо.'
     
     def __eq__(self, other) -> bool:
         return type(self) == type(other)
@@ -35,11 +35,11 @@ class Ring:
             self.value = value
             self.ring = ring
 
-        def __repr__(self):
-            return f'Элемент {self.value} из {self.ring}'
+        def __str__(self):
+            return f'Элемент {self.value} из {self.ring}.'
         
-        def __str__(self) -> str:
-            return self.__repr__()
+        def __repr__(self) -> str:
+            return f'Ring.Element({repr(self.ring)}, {self.value})'
         
         def _check(self, other) -> Tuple['Ring.Element', bool]:
             if not isinstance(other, Ring.Element):
@@ -176,6 +176,9 @@ class IntegerRing(Ring):
         return self.Element(self, int(value))
     
     def __repr__(self) -> str:
+        return "IntegerRing()"
+
+    def __str__(self) -> str:
         return f'Кольцо целых чисел.'
 
     class Element(Ring.Element):
@@ -184,4 +187,7 @@ class IntegerRing(Ring):
             super().__init__(ring, value)
 
         def __repr__(self) -> str:
+            return f'IntegerRing.Element({repr(self.ring)}, {self.value})'
+
+        def __str__(self) -> str:
             return str(self.value)

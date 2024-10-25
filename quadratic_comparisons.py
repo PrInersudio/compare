@@ -28,12 +28,12 @@ class QuadraticResidue:
     def __init__(self, a: int, p: int):
         self.a = a
         self.p = p
-        
+
     def __repr__(self) -> str:
-        return f'x^2 = {self.a} (mod {self.p})'
-    
+        return f'QuadraticResidue({self.a}, {self.p})'
+        
     def __str__(self) -> str:
-        return self.__repr__()
+        return f'x^2 = {self.a} (mod {self.p})'
     
     def __eq__(self, other: 'QuadraticResidue') -> bool:
         if not isinstance(other, QuadraticResidue): return False

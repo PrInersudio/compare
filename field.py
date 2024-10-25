@@ -19,12 +19,22 @@ class Field(Ring):
         self.is_commutative = True
 
     def __repr__(self) -> str:
+        return "Field()"
+
+    def __str__(self) -> str:
         return f'Абстрактное поле.'
 
     class Element(Ring.Element):
 
         def __init__(self, field: 'Field', value = None):
             super().__init__(field, value)
+            self.field = self.ring
+
+        def __repr__(self) -> str:
+            return f'Field.Element({repr(self.field)},{self.value})'
+
+        def __str__(self) -> str:
+            return f'Элемент {self.value} поля {self.field}.'
     
 class GF_prime(IntegerModRing, Field):
     def __init__(self, p: int):
@@ -35,17 +45,31 @@ class GF_prime(IntegerModRing, Field):
         self.is_commutative = True
 
     def __repr__(self) -> str:
-        return f'Конечное поле размера {self.m}'
+        return f"GF_prime({self.p})"
+
+    def __str__(self) -> str:
+        return f'Конечное поле размера {self.p}.'
     
     class Element(IntegerModRing.Element):
+
         def __init__(self, gf: 'GF', value = None):
             super().__init__(gf, value)
+            self.field = self.ring
+
+        def __repr__(self) -> str:
+            return f'GF_prime.Element({repr(self.field)},{self.value})'
 
     
 class GF_primary:
 
     def __init__(self, p: int, q: int):
         raise ValueError("Ещё не разработано.")
+    
+    def __repr__(self) -> str:
+        return f"GF_primary({self.p}, {self.q})."
+
+    def __str__(self) -> str:
+        return f'Конечное поле размера {self.p}^{self.q}.'
     
 class GF(GF_prime, GF_primary):
 
@@ -79,6 +103,12 @@ class RealField(Field):
 
     def __call__(self, value = 0) -> 'RealField.Element':
         return self.Element(self, float(value))
+    
+    def __repr__(self) -> str:
+        return "RealField()"
+
+    def __str__(self) -> str:
+        return "Поле вещественных чисел."
 
     class Element(Field.Element):
 
@@ -86,6 +116,9 @@ class RealField(Field):
             super().__init__(field, value)
 
         def __repr__(self) -> str:
+            return f'RealField.Element({repr(self.field)},{self.value})'
+
+        def __str__(self) -> str:
             return str(self.value)
 
 
@@ -106,6 +139,12 @@ class ComplexField(Field):
 
     def __call__(self, value = 0) -> 'ComplexField.Element':
         return self.Element(self, complex(value))
+    
+    def __repr__(self) -> str:
+        return "ComplexField()"
+
+    def __str__(self) -> str:
+        return "Поле комплексных чисел."
 
     class Element(Field.Element):
 
@@ -113,4 +152,10 @@ class ComplexField(Field):
             super().__init__(field, value)
 
         def __repr__(self) -> str:
+            return str(self.value)
+        
+        def __repr__(self) -> str:
+            return f'ComplexField.Element({repr(self.field)},{self.value})'
+
+        def __str__(self) -> str:
             return str(self.value)

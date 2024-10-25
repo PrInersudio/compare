@@ -35,10 +35,10 @@ class Polynomial(Ring):
         ''')
 
     def __repr__(self) -> str:
-        return f'Кольцо многочленов над {self.basic_ring}'
-    
+        return f'Polynomial({repr(self.basic_ring)})'
+
     def __str__(self) -> str:
-        return self.__repr__()
+        return f'Кольцо многочленов над {self.basic_ring}'
     
     def __call__(self, raw_poly: None | Dict[int, Ring.Element] | Ring.Element | str = None):
         return self.Element(self, raw_poly)
@@ -192,8 +192,11 @@ class Polynomial(Ring):
     
         def __bool__(self) -> bool:
             return any(coeff for coeff in self.value.values())
-    
+        
         def __repr__(self) -> str:
+            return f'Polynomial.Element({repr(self.ring)}, {self.value})'
+    
+        def __str__(self) -> str:
             if not self: return str(self.ring.basic_ring())
             monomials = []
             for exp in sorted(list(self), reverse=True):

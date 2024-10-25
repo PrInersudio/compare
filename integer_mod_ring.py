@@ -22,6 +22,9 @@ class IntegerModRing(Ring):
         return self.m == other.m
     
     def __repr__(self) -> str:
+        return f'IntegerModRing({self.m})'
+
+    def __str__(self) -> str:
         return f'Кольцо целых чисел по модулю {self.m}'
     
     def __mul_odd_module(self, a: 'IntegerModRing.Element', b: 'IntegerModRing.Element') -> 'IntegerModRing.Element':
@@ -58,7 +61,10 @@ class IntegerModRing(Ring):
             if not check_result: return NotImplemented
             return self * (other ** (-1))
         
-        def __repr__(self):
+        def __repr__(self) -> str:
+            return f'IntegerModRing.Element({repr(self.ring)}, {self.value})'
+
+        def __str__(self) -> str:
             return f'[{self.value}]_{self.ring.m}'
 
 class TestIntegerModRing(unittest.TestCase):
