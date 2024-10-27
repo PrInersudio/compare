@@ -1,3 +1,4 @@
 .ai
 *.log
 __pycache__
+*.so
