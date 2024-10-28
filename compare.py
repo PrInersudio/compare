@@ -28,7 +28,7 @@ def main():
         equations_lines = fp.readlines()
     equations = []
     for equation in equations_lines:
-        logger.info('Парсинг %s', equation)
+        logger.info('Парсинг %s.', equation.strip())
         if '#' in equation:
             continue
         equations.append(parse_equation(equation))

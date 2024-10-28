@@ -18,10 +18,11 @@ class IntegerModRing(Ring):
         super().__init__()
         self.m = m
         if self.m & 1:
-            self.b1 = (1 << (self.m.bit_length() << 1)) % self.m
-            self._mul = lambda a, b: self(_mul(a, b, self.m, self.b1))
+            self.__b1 = (1 << (self.m.bit_length() << 1)) % self.m
+            self._mul = lambda a, b: self(_mul(a, b, self.m, self.__b1))
         else: self._mul = lambda a, b: self(a * b)
         self.has_multiplicative_identity = True
+        self.is_commutative = True
 
     def __eq__(self, other: 'IntegerModRing') -> bool:
         if not isinstance(other, IntegerModRing):

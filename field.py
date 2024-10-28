@@ -49,7 +49,7 @@ class Field(Ring):
             return f'Field.Element({repr(self.field)},{self.value})'
 
         def __str__(self) -> str:
-            return f'Элемент {self.value} поля {self.field}.'
+            return f'Элемент {self.value} поля {self.field}'
 
 
 class _GFPrime(IntegerModRing, Field):

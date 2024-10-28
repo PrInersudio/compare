@@ -47,7 +47,7 @@ class Ring:
             self.ring = ring
 
         def __str__(self):
-            return f'Элемент {self.value} из {self.ring}.'
+            return f'Элемент {self.value} из {self.ring}'
 
         def __repr__(self) -> str:
             return f'Ring.Element({repr(self.ring)}, {self.value})'
