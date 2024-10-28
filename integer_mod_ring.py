@@ -9,8 +9,7 @@ from ring import Ring
 
 _mul = ctypes.CDLL('./libmul.so').mul
 _mul.restype = ctypes.c_uint
-_mul.argtypes = [ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
-
+_mul.argtypes = [ctypes.c_uint, ctypes.c_uint, ctypes.c_uint, ctypes.c_uint]
 
 class IntegerModRing(Ring):
     """Кольцо вычетов."""
@@ -19,8 +18,9 @@ class IntegerModRing(Ring):
         super().__init__()
         self.m = m
         if self.m & 1:
-            self._mul = self.__mul_odd_module
-        else: self._mul = self.__mul_even_module
+            self.b1 = (1 << (self.m.bit_length() << 1)) % self.m
+            self._mul = lambda a, b: self(_mul(a, b, self.m, self.b1))
+        else: self._mul = lambda a, b: self(a * b)
         self.has_multiplicative_identity = True
 
     def __eq__(self, other: 'IntegerModRing') -> bool:
@@ -33,20 +33,6 @@ class IntegerModRing(Ring):
 
     def __str__(self) -> str:
         return f'Кольцо целых чисел по модулю {self.m}'
-
-    def __mul_odd_module(
-            self,
-            a: 'IntegerModRing.Element',
-            b: 'IntegerModRing.Element',
-    ) -> 'IntegerModRing.Element':
-        return self(_mul(a.value, b.value, self.m))
-
-    def __mul_even_module(
-            self,
-            a: 'IntegerModRing.Element',
-            b: 'IntegerModRing.Element',
-    ) -> 'IntegerModRing.Element':
-        return self(a.value * b.value)
 
     def __call__(self, value: 'IntegerModRing.Element' | int = 0):
         return self.Element(self, int(value))
@@ -72,7 +58,7 @@ class IntegerModRing(Ring):
             other, check_result = self._check(other)
             if not check_result:
                 return NotImplemented
-            return self.ring._mul(self, other)
+            return self.ring._mul(self.value, other.value)
 
         def __truediv__(self, other: 'IntegerModRing.Element' | int) -> 'IntegerModRing.Element':
             other, check_result = self._check(other)

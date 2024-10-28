@@ -1,4 +1,4 @@
 all:
 	gcc -shared -o libmul.so mul.c
 remove:
-	rm *.so log/*.log
+	rm -r *.so log/*.log __pycache__
